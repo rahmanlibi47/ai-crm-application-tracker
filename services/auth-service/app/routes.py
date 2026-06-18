@@ -1,6 +1,10 @@
 from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import HTTPException
+from fastapi import Request
+from fastapi.responses import RedirectResponse
+from authlib.integrations.starlette_client import OAuth
+from app.config import settings
 
 from sqlalchemy.orm import Session
 
@@ -21,6 +25,19 @@ from app.crud import get_user_by_email
 from app.crud import get_user_by_id
 
 from app.auth_service import generate_auth_response
+
+
+oauth = OAuth()
+
+oauth.register(
+    name="google",
+    client_id=settings.GOOGLE_CLIENT_ID,
+    client_secret=settings.GOOGLE_CLIENT_SECRET,
+    server_metadata_url="https://accounts.google.com/.well-known/openid-configuration",
+    client_kwargs={
+        "scope": "openid email profile"
+    }
+)
 
 router = APIRouter()
 
@@ -92,7 +109,7 @@ def login(
     
     return generate_auth_response(existing_user)
     
-@router.get("/me", response_model=UserResponse)
+@router.get("/get_user", response_model=UserResponse)
 def get_current_user(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db)
@@ -116,3 +133,43 @@ def get_current_user(
         )
 
     return user
+
+
+@router.get("/oauth/google/login")
+async def google_login(request: Request):
+    return await oauth.google.authorize_redirect(
+        request,
+        settings.GOOGLE_REDIRECT_URI
+    )
+
+
+@router.get("/oauth/google/callback")
+async def google_callback(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    token = await oauth.google.authorize_access_token(request)
+
+    user_info = token.get("userinfo")
+
+    email = user_info["email"]
+    full_name = user_info.get("name", email)
+
+    user = (
+        db.query(User)
+        .filter(User.email == email)
+        .first()
+    )
+
+    if not user:
+        user = User(
+            email=email,
+            full_name=full_name,
+            hashed_password="GOOGLE_OAUTH_USER"
+        )
+
+        db.add(user)
+        db.commit()
+        db.refresh(user)
+
+    return generate_auth_response(user)

@@ -53,10 +53,12 @@ Features:
 
 Endpoints:
 
+* GET /health
 * POST /signup
 * POST /login
-* GET /me
-* GET /health
+* GET /get_user
+* GET /oauth/google/login
+* GET /oauth/google/callback
 
 ### Application Service
 
@@ -101,7 +103,7 @@ Planned Features:
 ### Authentication
 
 * JWT
-* OAuth (Planned)
+* OAuth
 * bcrypt
 
 ### Messaging
@@ -146,14 +148,14 @@ Planned Features:
 * Signup Endpoint
 * Login Endpoint
 * JWT Token Generation
-* Protected Route (/me)
+* Google OAuth Login
+* Protected Route (/get_user)
 * Basic Unit Tests
 
 ### Next Steps
 
 * Refresh Tokens
 * Email Verification
-* OAuth Login
 * Application Service
 * Docker Compose
 * Redis Integration
