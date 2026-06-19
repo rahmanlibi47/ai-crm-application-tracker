@@ -1,4 +1,4 @@
-# AI-Powered Job Application Tracker
+# CareerLedger - AI-Powered Job Application Tracker
 
 A production-style microservices project built to demonstrate modern backend, cloud, and AI engineering concepts.
 
