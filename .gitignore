@@ -11,3 +11,5 @@ __pycache__/
 
 .coverage
 htmlcov/
+
+start-careerledger.ps1
