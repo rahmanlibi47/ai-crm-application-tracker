@@ -43,7 +43,7 @@ router = APIRouter()
 
 @router.post(
     "/signup",
-    response_model=AuthResponse
+    response_model=None
 )
 def signup(
     user:UserCreate,
@@ -60,7 +60,9 @@ def signup(
     new_user = User(
         email  = user.email,
         hashed_password = hash_password(user.password),
-        full_name = user.full_name
+        full_name = user.full_name,
+        auth_provider="local",
+        is_verified=False
     )
     
     db.add(new_user)
@@ -69,7 +71,9 @@ def signup(
     
     db.refresh(new_user)
     
-    return generate_auth_response(new_user)
+    return {
+    "message": "Signup successful. Please verify your email."
+}
 
 
 @router.post(
@@ -165,7 +169,9 @@ async def google_callback(
         user = User(
             email=email,
             full_name=full_name,
-            hashed_password="GOOGLE_OAUTH_USER"
+            hashed_password="GOOGLE_OAUTH_USER",
+            auth_provider="google",
+            is_verified=True
         )
 
         db.add(user)

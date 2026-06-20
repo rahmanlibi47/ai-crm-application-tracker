@@ -40,5 +40,12 @@ services:
       - auth-postgres
       - job-tracker-redis
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: careerledger-rabbitmq
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
 volumes:
   auth_postgres_data:
