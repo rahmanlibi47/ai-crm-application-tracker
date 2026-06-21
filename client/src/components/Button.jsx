@@ -1,16 +1,10 @@
-const Button = ({
-  children,
-  loading,
-  ...props
-}) => {
+const Button = ({ children, loading, disabled, ...props }) => {
   return (
     <button
-      disabled={loading}
+      disabled={loading || disabled}
       {...props}
     >
-      {loading
-        ? "Please wait..."
-        : children}
+      {loading ? "Please wait..." : children}
     </button>
   );
 };

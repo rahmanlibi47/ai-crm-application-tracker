@@ -15,7 +15,7 @@ from app.models import User
 from app.schemas import UserCreate
 from app.schemas import UserResponse
 from app.schemas import UserLogin, AuthResponse
-from app.schemas import TokenResponse, VerifyOtpRequest
+from app.schemas import TokenResponse, VerifyOtpRequest, ResendOtpRequest
 
 from app.auth import hash_password, verify_password, decode_access_token
 from app.auth import create_access_token
@@ -252,4 +252,37 @@ def logout(response: Response):
 
     return {
         "message": "Logged out successfully"
+    }
+    
+@router.post("/login/resend-otp")
+def resend_login_otp(
+    payload: ResendOtpRequest,
+    background_tasks: BackgroundTasks,
+    db: Session = Depends(get_db)
+):
+    existing_user = get_user_by_email(db, payload.email)
+
+    if not existing_user:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found"
+        )
+
+    otp = generate_otp()
+
+    save_login_otp(
+        db=db,
+        user=existing_user,
+        otp=otp
+    )
+
+    background_tasks.add_task(
+        send_login_otp_background,
+        existing_user.email,
+        otp
+    )
+
+    return {
+        "message": "OTP resent successfully",
+        "email": existing_user.email
     }
