@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from fastapi import Depends
+from fastapi import BackgroundTasks
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi.responses import RedirectResponse
@@ -13,7 +14,7 @@ from app.models import User
 from app.schemas import UserCreate
 from app.schemas import UserResponse
 from app.schemas import UserLogin, AuthResponse
-from app.schemas import TokenResponse
+from app.schemas import TokenResponse, VerifyOtpRequest
 
 from app.auth import hash_password, verify_password, decode_access_token
 from app.auth import create_access_token
@@ -27,7 +28,9 @@ from app.crud import get_user_by_id
 from app.auth_service import generate_auth_response
 
 from app.redis_client import redis_client
-from app.otp import generate_otp
+from app.otp import generate_otp, verify_login_otp as verify_login_otp_service, save_login_otp
+
+from app.email_service import send_login_otp_background
 
 
 oauth = OAuth()
@@ -89,41 +92,75 @@ def signup(
 }
 
 
-@router.post(
-    "/login",
-    response_model=AuthResponse
-)
+@router.post("/login")
 def login(
     user: UserLogin,
+    background_tasks: BackgroundTasks,
     db: Session = Depends(get_db)
 ):
-    
     existing_user = get_user_by_email(db, user.email)
+
+    if not existing_user:
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    if not verify_password(user.password, existing_user.hashed_password):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
     
+    otp = generate_otp()
+
+    save_login_otp(
+        db=db,
+        user=existing_user,
+        otp=otp
+    )
+
+    background_tasks.add_task(
+        send_login_otp_background,
+        existing_user.email,
+        otp
+    )
+
+    return {
+        "message": "OTP generated successfully",
+        "email": existing_user.email,
+        "requires_otp": True
+    }
+    
+    
+@router.post("/login/verify-otp", response_model=AuthResponse)
+def verify_login_otp_route(
+    payload: VerifyOtpRequest,
+    db: Session = Depends(get_db)
+):
+    existing_user = get_user_by_email(
+        db,
+        payload.email
+    )
+
     if not existing_user:
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password"
+            detail="Invalid OTP"
         )
-        
-    password_valid = verify_password(
-        user.password,
-        existing_user.hashed_password
+
+    otp_valid = verify_login_otp_service(
+        db=db,
+        user=existing_user,
+        otp=payload.otp
     )
-    
-    if not password_valid:
+
+    if not otp_valid:
         raise HTTPException(
             status_code=401,
-            detail="Invalid email or password"
+            detail="Invalid or expired OTP"
         )
-        
-    access_token = create_access_token(
-        data={
-            "sub": existing_user.email,
-            "user_id": existing_user.id
-        }
-    )
-    
+
+    # Mark email verified after successful OTP login
+    if not existing_user.is_verified:
+        existing_user.is_verified = True
+        db.commit()
+        db.refresh(existing_user)
+
     return generate_auth_response(existing_user)
     
 @router.get("/get_user", response_model=UserResponse)
@@ -150,6 +187,7 @@ def get_current_user(
         )
 
     return user
+
 
 
 @router.get("/oauth/google/login")

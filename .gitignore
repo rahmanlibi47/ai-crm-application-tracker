@@ -1,11 +1,14 @@
 venv/
 __pycache__/
 .env
+.env.local
 .env.docker
 .pytest_cache/
 
 *.pyc
 
+*.ps1
+*.pem
 .idea/
 .vscode/
 

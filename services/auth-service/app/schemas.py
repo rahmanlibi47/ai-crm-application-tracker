@@ -32,4 +32,6 @@ class AuthResponse(BaseModel):
     user: UserResponse
         
         
-    
+class VerifyOtpRequest(BaseModel):
+    email: EmailStr
+    otp: str
