@@ -1,53 +1,78 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { authApi } from "../api/client";
+import AuthCard from "../components/AuthCard";
+import Input from "../components/Input";
+import Button from "../components/Button";
+import { useAuthForm } from "../hooks/useAuthForm";
 
-function Signup() {
+const Signup = () => {
   const navigate = useNavigate();
 
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const {
+    values,
+    loading,
+    setLoading,
+    error,
+    setError,
+    handleChange,
+  } = useAuthForm({
+    full_name: "",
+    email: "",
+    password: "",
+  });
 
-  async function handleSignup(e) {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    await authApi.post("/signup", {
-      full_name: fullName,
-      email,
-      password,
-    });
-
-    alert("Signup successful. Please verify your email");
-    navigate("/login");
-  }
+    try {
+      await authApi.post("/signup", values);
+      navigate("/login");
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+          "Signup failed"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <form onSubmit={handleSignup}>
-      <h1>Signup</h1>
+    <AuthCard title="Create Account">
+      <form onSubmit={handleSubmit}>
+        <Input
+          label="Full Name"
+          name="full_name"
+          value={values.full_name}
+          onChange={handleChange}
+        />
 
-      <input
-        placeholder="Full name"
-        value={fullName}
-        onChange={(e) => setFullName(e.target.value)}
-      />
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          value={values.email}
+          onChange={handleChange}
+        />
 
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <Input
+          label="Password"
+          name="password"
+          type="password"
+          value={values.password}
+          onChange={handleChange}
+        />
 
-      <input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <button type="submit">Create Account</button>
-    </form>
+        <Button loading={loading}>
+          Sign Up
+        </Button>
+      </form>
+    </AuthCard>
   );
-}
+};
 
 export default Signup;

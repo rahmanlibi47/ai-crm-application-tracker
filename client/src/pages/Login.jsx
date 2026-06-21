@@ -1,43 +1,75 @@
-import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { authApi } from "../api/client";
+import AuthCard from "../components/AuthCard";
+import Input from "../components/Input";
+import Button from "../components/Button";
+import { useAuthForm } from "../hooks/useAuthForm";
 
-function Login() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+const Login = () => {
+  const navigate = useNavigate();
 
-  async function handleLogin(e) {
+  const {
+    values,
+    loading,
+    setLoading,
+    error,
+    setError,
+    handleChange,
+  } = useAuthForm({
+    email: "",
+    password: "",
+  });
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError("");
+    setLoading(true);
 
-    const response = await authApi.post("/login", {
-      email,
-      password,
-    });
+    try {
+      const response = await authApi.post("/login", values);
 
-    console.log("token", response.data.access_token)
-
-    alert("Login successful");
-  }
+      navigate("/verify-otp", {
+        state: {
+          email: response.data.email,
+        },
+      });
+    } catch (err) {
+      setError(
+        err.response?.data?.detail ||
+          "Login failed"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <form onSubmit={handleLogin}>
-      <h1>Login</h1>
+    <AuthCard title="Login">
+      <form onSubmit={handleSubmit}>
+        <Input
+          label="Email"
+          name="email"
+          type="email"
+          value={values.email}
+          onChange={handleChange}
+        />
 
-      <input
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-      />
+        <Input
+          label="Password"
+          name="password"
+          type="password"
+          value={values.password}
+          onChange={handleChange}
+        />
 
-      <input
-        placeholder="Password"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-      />
+        {error && <p style={{ color: "red" }}>{error}</p>}
 
-      <button type="submit">Login</button>
-    </form>
+        <Button loading={loading}>
+          Send OTP
+        </Button>
+      </form>
+    </AuthCard>
   );
-}
+};
 
 export default Login;

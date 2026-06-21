@@ -3,6 +3,7 @@ from fastapi import Depends
 from fastapi import BackgroundTasks
 from fastapi import HTTPException
 from fastapi import Request
+from fastapi import Response
 from fastapi.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
 from app.config import settings
@@ -126,22 +127,16 @@ def login(
         "requires_otp": True
     }
     
-    
-@router.post("/login/verify-otp", response_model=AuthResponse)
+@router.post("/login/verify-otp")
 def verify_login_otp_route(
     payload: VerifyOtpRequest,
+    response: Response,
     db: Session = Depends(get_db)
 ):
-    existing_user = get_user_by_email(
-        db,
-        payload.email
-    )
+    existing_user = get_user_by_email(db, payload.email)
 
     if not existing_user:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid OTP"
-        )
+        raise HTTPException(status_code=401, detail="Invalid OTP")
 
     otp_valid = verify_login_otp_service(
         db=db,
@@ -150,18 +145,32 @@ def verify_login_otp_route(
     )
 
     if not otp_valid:
-        raise HTTPException(
-            status_code=401,
-            detail="Invalid or expired OTP"
-        )
+        raise HTTPException(status_code=401, detail="Invalid or expired OTP")
 
-    # Mark email verified after successful OTP login
-    if not existing_user.is_verified:
-        existing_user.is_verified = True
-        db.commit()
-        db.refresh(existing_user)
+    access_token = create_access_token(
+        data={
+            "sub": existing_user.email,
+            "user_id": existing_user.id
+        }
+    )
 
-    return generate_auth_response(existing_user)
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,      # True in production HTTPS
+        samesite="lax",
+        max_age=60 * 60,
+    )
+
+    return {
+        "message": "Login successful",
+        "user": {
+            "id": existing_user.id,
+            "email": existing_user.email,
+            "full_name": existing_user.full_name,
+        }
+    }
     
 @router.get("/get_user", response_model=UserResponse)
 def get_current_user(
@@ -230,3 +239,17 @@ async def google_callback(
         db.refresh(user)
 
     return generate_auth_response(user)
+
+
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(
+        key="access_token",
+        httponly=True,
+        secure=False,
+        samesite="lax",
+    )
+
+    return {
+        "message": "Logged out successfully"
+    }
