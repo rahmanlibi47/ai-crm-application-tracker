@@ -26,6 +26,9 @@ from app.crud import get_user_by_id
 
 from app.auth_service import generate_auth_response
 
+from app.redis_client import redis_client
+from app.otp import generate_otp
+
 
 oauth = OAuth()
 
@@ -70,6 +73,16 @@ def signup(
     db.commit()
     
     db.refresh(new_user)
+    
+    otp = generate_otp()
+
+    redis_client.setex(
+        f"email_otp:{new_user.email}",
+        300,
+        otp
+    )
+
+    print(f"OTP for {new_user.email}: {otp}")
     
     return {
     "message": "Signup successful. Please verify your email."
