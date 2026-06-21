@@ -238,7 +238,27 @@ async def google_callback(
         db.commit()
         db.refresh(user)
 
-    return generate_auth_response(user)
+    access_token = create_access_token(
+        data={
+            "sub": user.email,
+            "user_id": user.id
+        }
+    )
+
+    response = RedirectResponse(
+        url=f"{settings.FRONTEND_URL}/dashboard"
+    )
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=60 * 60
+    )
+
+    return response
 
 
 @router.post("/logout")

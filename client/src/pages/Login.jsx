@@ -8,17 +8,11 @@ import { useAuthForm } from "../hooks/useAuthForm";
 const Login = () => {
   const navigate = useNavigate();
 
-  const {
-    values,
-    loading,
-    setLoading,
-    error,
-    setError,
-    handleChange,
-  } = useAuthForm({
-    email: "",
-    password: "",
-  });
+  const { values, loading, setLoading, error, setError, handleChange } =
+    useAuthForm({
+      email: "",
+      password: "",
+    });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,13 +28,16 @@ const Login = () => {
         },
       });
     } catch (err) {
-      setError(
-        err.response?.data?.detail ||
-          "Login failed"
-      );
+      setError(err.response?.data?.detail || "Login failed");
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${
+      import.meta.env.VITE_AUTH_API_URL
+    }/oauth/google/login`;
   };
 
   return (
@@ -64,10 +61,11 @@ const Login = () => {
 
         {error && <p style={{ color: "red" }}>{error}</p>}
 
-        <Button loading={loading}>
-          Send OTP
-        </Button>
+        <Button loading={loading}>Send OTP</Button>
       </form>
+      <Button type="button" onClick={handleGoogleLogin}>
+        Continue with Google
+      </Button>
     </AuthCard>
   );
 };
