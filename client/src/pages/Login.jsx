@@ -5,16 +5,13 @@ function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  async function handleLogin(e: React.FormEvent) {
+  async function handleLogin(e) {
     e.preventDefault();
 
     const response = await authApi.post("/login", {
       email,
       password,
     });
-
-    // localStorage.setItem("access_token", response.data.access_token);
-    // localStorage.removeItem("access_token");
 
     console.log("token", response.data.access_token)
 
