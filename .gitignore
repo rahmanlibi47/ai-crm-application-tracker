@@ -7,12 +7,9 @@ __pycache__/
 
 *.pyc
 
-*.ps1
 *.pem
 .idea/
 .vscode/
 
 .coverage
 htmlcov/
-
-start-careerledger.ps1
