@@ -7,7 +7,7 @@ from fastapi import Response
 from fastapi.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
 from app.config import settings
-
+from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 
 from app.database import get_db
@@ -238,7 +238,27 @@ async def google_callback(
         db.commit()
         db.refresh(user)
 
-    return generate_auth_response(user)
+    access_token = create_access_token(
+        data={
+            "sub": user.email,
+            "user_id": user.id
+        }
+    )
+
+    response = RedirectResponse(
+        url=f"{settings.FRONTEND_URL}/dashboard"
+    )
+
+    response.set_cookie(
+        key="access_token",
+        value=access_token,
+        httponly=True,
+        secure=False,
+        samesite="lax",
+        max_age=60 * 60
+    )
+
+    return response
 
 
 @router.post("/logout")
@@ -285,4 +305,44 @@ def resend_login_otp(
     return {
         "message": "OTP resent successfully",
         "email": existing_user.email
+    }
+    
+    
+    
+@router.get("/me")
+def get_me(
+    request: Request,
+    db: Session = Depends(get_db)
+):
+    token = request.cookies.get("access_token")
+
+    if not token:
+        raise HTTPException(status_code=401, detail="Not authenticated")
+
+    try:
+        payload = jwt.decode(
+            token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM]
+        )
+
+        user_id = payload.get("user_id")
+
+        if not user_id:
+            raise HTTPException(status_code=401, detail="Invalid token")
+
+    except JWTError:
+        raise HTTPException(status_code=401, detail="Invalid token")
+
+    user = db.query(User).filter(User.id == user_id).first()
+
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    return {
+        "id": user.id,
+        "email": user.email,
+        "full_name": user.full_name,
+        "auth_provider": user.auth_provider,
+        "is_verified": user.is_verified,
     }

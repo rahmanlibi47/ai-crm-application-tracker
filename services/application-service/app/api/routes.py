@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from app.db.database import get_db
@@ -12,6 +12,7 @@ from app.dependencies.auth import get_current_user_id
 
 from app.dependencies.rate_limit import check_rate_limit
 
+from app.services.adzuna_service import search_adzuna_jobs
 
 router = APIRouter()
 
@@ -53,4 +54,18 @@ def list_applications(
     return get_user_applications(
         db=db,
         user_id=user_id
+    )
+    
+@router.get("/jobs/search")
+async def search_jobs(
+    what: str = Query(...),
+    where: str = Query(default=""),
+    page: int = Query(default=1),
+    results_per_page: int = Query(default=20),
+):
+    return await search_adzuna_jobs(
+        what=what,
+        where=where,
+        page=page,
+        results_per_page=results_per_page,
     )

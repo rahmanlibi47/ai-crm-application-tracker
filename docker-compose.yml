@@ -7,7 +7,9 @@ services:
       - "8001:8001"
     env_file:
       - ./services/auth-service/.env.docker
-
+    depends_on:
+      postgres:
+        condition: service_healthy
   job-tracker-redis:
     image: redis:7
     container_name: job-tracker-redis
@@ -23,7 +25,10 @@ services:
     env_file:
       - ./services/application-service/.env.docker
     depends_on:
-      - job-tracker-redis
+      postgres:
+        condition: service_healthy
+      job-tracker-redis:
+        condition: service_started
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -31,3 +36,24 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+
+  postgres:
+    image: postgres:17
+    container_name: careerledger-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: careerledger
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d careerledger"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  postgres_data:
