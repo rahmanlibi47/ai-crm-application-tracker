@@ -173,6 +173,8 @@ Swagger UI:
 
 ```text
 http://localhost:8001/docs
+https://careerledger.libinrahman.cloud/auth/docs",
+https://careerledger.libinrahman.cloud/app/docs"
 ```
 
 ---
