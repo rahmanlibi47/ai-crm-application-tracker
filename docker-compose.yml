@@ -16,6 +16,18 @@ services:
     ports:
       - "6379:6379"
 
+  client:
+    build:
+      context: ./client
+    container_name: careerledger-client
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    environment:
+      - CHOKIDAR_USEPOLLING=true
+
   application-service:
     build:
       context: ./services/application-service
