@@ -7,7 +7,10 @@ from app.db.models import JobApplication
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Application Service")
+app = FastAPI(
+    title="Application Service",
+    root_path="/api/app",
+)
 
 app.add_middleware(
     CORSMiddleware,

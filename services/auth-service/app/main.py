@@ -9,7 +9,10 @@ from app.routes import router
 
 Base.metadata.create_all(bind=engine)
 
-app = FastAPI(title="Auth Service")
+app = FastAPI(
+    title="Auth Service",
+    root_path="/api/auth",
+)
 
 app.add_middleware(
     CORSMiddleware,
