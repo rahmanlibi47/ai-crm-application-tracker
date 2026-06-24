@@ -288,7 +288,7 @@ async def google_callback(
     )
 
     response = RedirectResponse(
-        url=f"{settings.FRONTEND_URL}/dashboard"
+        url=f"{settings.FRONTEND_URL}"
     )
 
     response.set_cookie(
