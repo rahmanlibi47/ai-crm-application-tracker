@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import { useEffect } from "react";
 
@@ -10,15 +11,14 @@ const App = () => {
 
   useEffect(() => {
     async function checkAuth() {
-      const res = await fetch(`${import.meta.env.VITE_AUTH_API_URL}/me`, {
-        credentials: "include",
-      });
+      const res = await fetch(
+        `${import.meta.env.VITE_AUTH_API_URL}/me`,
+        {
+          credentials: "include",
+        }
+      );
 
-      if (res.ok) {
-        setIsAuthenticated(true);
-      } else {
-        setIsAuthenticated(false);
-      }
+      setIsAuthenticated(res.ok);
     }
 
     checkAuth();
@@ -27,9 +27,29 @@ const App = () => {
   return (
     <BrowserRouter>
       <Routes>
+
+        {/* Root route */}
+        <Route
+          path="/"
+          element={
+            isAuthenticated
+              ? <Dashboard />
+              : <Navigate to="/login" replace />
+          }
+        />
+
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </BrowserRouter>
   );
