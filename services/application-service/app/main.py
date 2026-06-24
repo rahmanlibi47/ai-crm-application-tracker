@@ -13,7 +13,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
-        "http://careerledger.libinrahman.cloud:5173",
+        "https://careerledger.libinrahman.cloud",
     ],
     allow_credentials=True,
     allow_methods=["*"],
