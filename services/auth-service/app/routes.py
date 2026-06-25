@@ -4,6 +4,7 @@ from fastapi import BackgroundTasks
 from fastapi import HTTPException
 from fastapi import Request
 from fastapi import Response
+from fastapi.responses import JSONResponse
 from fastapi.responses import RedirectResponse
 from authlib.integrations.starlette_client import OAuth
 from app.config import settings
@@ -32,6 +33,8 @@ from app.redis_client import redis_client
 from app.otp import generate_otp, verify_login_otp as verify_login_otp_service, save_login_otp
 
 from app.email_service import send_login_otp_background
+import time
+
 
 OTP_DAILY_LIMIT = 3
 OTP_IP_DAILY_LIMIT = 15
@@ -352,12 +355,13 @@ def resend_login_otp(
     }
     
     
-    
 @router.get("/me")
 def get_me(
     request: Request,
     db: Session = Depends(get_db)
 ):
+    start = time.perf_counter()
+
     token = request.cookies.get("access_token")
 
     if not token:
@@ -383,10 +387,19 @@ def get_me(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
 
-    return {
-        "id": user.id,
-        "email": user.email,
-        "full_name": user.full_name,
-        "auth_provider": user.auth_provider,
-        "is_verified": user.is_verified,
-    }
+    elapsed = (time.perf_counter() - start) * 1000
+
+    print(f"/me completed in {elapsed:.2f} ms")
+
+    return JSONResponse(
+        content={
+            "id": user.id,
+            "email": user.email,
+            "full_name": user.full_name,
+            "auth_provider": user.auth_provider,
+            "is_verified": user.is_verified,
+        },
+        headers={
+            "X-Response-Time": f"{elapsed:.2f}ms"
+        }
+    )

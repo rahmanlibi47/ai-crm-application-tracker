@@ -9,19 +9,35 @@ import OAuthSuccess from "./components/OAuthSuccess";
 
 const App = () => {
   const { isAuthenticated, setIsAuthenticated, authChecked, setAuthChecked } = useAuth();
+useEffect(() => {
+  async function checkAuth() {
+    const start = performance.now();
 
-  useEffect(() => {
-    async function checkAuth() {
-      const res = await fetch(`${import.meta.env.VITE_AUTH_API_URL}/me`, {
+    const res = await fetch(
+      `${import.meta.env.VITE_AUTH_API_URL}/me`,
+      {
         credentials: "include",
-      });
+      }
+    );
 
-      setIsAuthenticated(res.ok);
-      setAuthChecked(true);
-    }
+    const end = performance.now();
 
-    checkAuth();
-  }, []);
+    console.log(
+      "Frontend fetch:",
+      `${(end - start).toFixed(2)} ms`
+    );
+
+    console.log(
+      "Backend:",
+      res.headers.get("X-Response-Time")
+    );
+
+    setIsAuthenticated(res.ok);
+    setAuthChecked(true);
+  }
+
+  checkAuth();
+}, []);
 
   return (
     <BrowserRouter>
