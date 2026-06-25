@@ -288,7 +288,7 @@ async def google_callback(
     )
 
     response = RedirectResponse(
-        url=f"{settings.FRONTEND_URL}"
+        url=f"{settings.FRONTEND_URL}/oauth/success"
     )
 
     response.set_cookie(
