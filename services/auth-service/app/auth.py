@@ -58,7 +58,6 @@ def decode_access_token(token: str):
             detail="Invalid or expired token"
         )
 
-#helper
 def create_user_token(user):
     return create_access_token(
         data={

@@ -1,8 +1,10 @@
 import random
 from datetime import datetime, timedelta
 
+
 def generate_otp() -> str:
     return str(random.randint(100000, 999999))
+
 
 def save_login_otp(db, user, otp):
     user.otp_code = otp
@@ -13,6 +15,7 @@ def save_login_otp(db, user, otp):
     db.refresh(user)
 
     return user
+
 
 def verify_login_otp(db, user, otp):
     if not user.otp_code:

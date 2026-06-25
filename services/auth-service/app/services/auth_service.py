@@ -1,5 +1,6 @@
 from app.auth import create_access_token
 
+
 def generate_auth_response(user):
     access_token = create_access_token(
         data={
