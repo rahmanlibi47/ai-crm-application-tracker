@@ -1,5 +1,3 @@
-# app/services/adzuna_service.py
-
 import httpx
 from app.core.config import settings
 
@@ -10,7 +8,7 @@ async def search_adzuna_jobs(
     what: str,
     where: str = "",
     page: int = 1,
-    results_per_page: int = 20,
+    results_per_page: int = 120,
 ):
     url = f"{ADZUNA_BASE_URL}/jobs/{settings.ADZUNA_COUNTRY}/search/{page}"
 

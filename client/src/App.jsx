@@ -6,38 +6,31 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useAuth } from "./context/AuthContext";
 import { useEffect } from "react";
 import OAuthSuccess from "./components/OAuthSuccess";
+import Jobs from "./pages/Jobs";
 
 const App = () => {
-  const { isAuthenticated, setIsAuthenticated, authChecked, setAuthChecked } = useAuth();
-useEffect(() => {
-  async function checkAuth() {
-    const start = performance.now();
+  const { isAuthenticated, setIsAuthenticated, authChecked, setAuthChecked } =
+    useAuth();
+  useEffect(() => {
+    async function checkAuth() {
+      const start = performance.now();
 
-    const res = await fetch(
-      `${import.meta.env.VITE_AUTH_API_URL}/me`,
-      {
+      const res = await fetch(`${import.meta.env.VITE_AUTH_API_URL}/me`, {
         credentials: "include",
-      }
-    );
+      });
 
-    const end = performance.now();
+      const end = performance.now();
 
-    console.log(
-      "Frontend fetch:",
-      `${(end - start).toFixed(2)} ms`
-    );
+      console.log("Frontend fetch:", `${(end - start).toFixed(2)} ms`);
 
-    console.log(
-      "Backend:",
-      res.headers.get("X-Response-Time")
-    );
+      console.log("Backend:", res.headers.get("X-Response-Time"));
 
-    setIsAuthenticated(res.ok);
-    setAuthChecked(true);
-  }
+      setIsAuthenticated(res.ok);
+      setAuthChecked(true);
+    }
 
-  checkAuth();
-}, []);
+    checkAuth();
+  }, []);
 
   return (
     <BrowserRouter>
@@ -62,6 +55,14 @@ useEffect(() => {
           element={
             <ProtectedRoute>
               <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/jobs"
+          element={
+            <ProtectedRoute>
+              <Jobs />
             </ProtectedRoute>
           }
         />
