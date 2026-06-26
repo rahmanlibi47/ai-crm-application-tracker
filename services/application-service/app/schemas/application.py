@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
+
 
 class JobApplicationCreate(BaseModel):
     company_name: str
@@ -24,3 +25,17 @@ class JobApplicationResponse(BaseModel):
     model_config = {
         "from_attributes": True
     }
+
+
+class Job(BaseModel):
+    id: str
+    source: str
+    title: str
+    company: str
+    location: str
+    description: str = ""
+    salary: str | None = None
+    apply_url: str
+    company_logo: str | None = None
+    tags: list[str] = Field(default_factory=list)
+    posted_at: datetime | None = None

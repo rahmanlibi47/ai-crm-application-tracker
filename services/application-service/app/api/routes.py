@@ -14,6 +14,8 @@ from app.dependencies.rate_limit import check_rate_limit
 
 from app.services.adzuna_service import search_adzuna_jobs
 
+from app.services.job_service import search_all_jobs
+
 router = APIRouter()
 
 
@@ -61,11 +63,11 @@ async def search_jobs(
     what: str = Query(...),
     where: str = Query(default=""),
     page: int = Query(default=1),
-    results_per_page: int = Query(default=20),
+    results_per_page: int = Query(default=40),
 ):
-    return await search_adzuna_jobs(
+    return await search_all_jobs(
         what=what,
         where=where,
         page=page,
-        results_per_page=results_per_page,
+        page_size=results_per_page,
     )
