@@ -17,6 +17,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "https://careerledger.libinrahman.cloud",
+        "http://docker.libinrahman.cloud",
+        "https://docker.libinrahman.cloud",
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -28,6 +30,4 @@ app.include_router(router)
 
 @app.get("/health")
 def health_check():
-    return {
-        "status": "application service running"
-    }
+    return {"status": "application service running"}

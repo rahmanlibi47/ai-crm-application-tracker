@@ -19,17 +19,17 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:5173",
         "https://careerledger.libinrahman.cloud",
+        "http://docker.libinrahman.cloud",
+        "https://docker.libinrahman.cloud",
     ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=settings.SECRET_KEY
-)
+app.add_middleware(SessionMiddleware, secret_key=settings.SECRET_KEY)
 app.include_router(router)
+
 
 @app.get("/health")
 def health_check():
