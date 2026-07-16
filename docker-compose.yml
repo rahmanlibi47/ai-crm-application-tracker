@@ -1,7 +1,6 @@
 services:
   auth-service:
-    build:
-      context: ./services/auth-service
+    image: rahmanlibi47/auth-service:latest
     container_name: auth-service
     ports:
       - "8001:8001"
@@ -10,6 +9,7 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+
   job-tracker-redis:
     image: redis:7
     container_name: job-tracker-redis
@@ -17,15 +17,13 @@ services:
       - "6379:6379"
 
   client:
-    build:
-      context: ./client
+    image: rahmanlibi47/careerledger-client:latest
     container_name: careerledger-client
     ports:
       - "5173:80"
 
   application-service:
-    build:
-      context: ./services/application-service
+    image: rahmanlibi47/application-service:latest
     container_name: application-service
     ports:
       - "8002:8002"
