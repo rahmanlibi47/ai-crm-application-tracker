@@ -5,7 +5,7 @@ from sqlalchemy.orm import declarative_base
 from app.core.config import settings
 
 engine = create_engine(
-    settings.DATABASE_URL
+    settings.APP_DATABASE_URL
 )
 
 SessionLocal = sessionmaker(

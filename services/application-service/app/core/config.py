@@ -4,7 +4,7 @@ from pydantic_settings import SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str
+    APP_DATABASE_URL: str
 
     AUTH_SECRET_KEY: str
     SECRET_KEY: str
